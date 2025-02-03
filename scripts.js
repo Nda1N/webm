@@ -2,7 +2,7 @@
 const videoPaths = {
     city1: ['t/human_t.mov', 'tb/human_tb.mov'],
     city2: ['t/dog_t.mov', 'tb/dog_tb.mov'],
-    city3: ['t/cat_t.webm', 'tb/cat_tb.webm'], // 'cat_t.webm' を追加
+    city3: ['cat_t.webm', 'cat_tb.webm'], // 'cat_t.webm' を追加
     city4: ['t/crow_t.mov', 'tb/crow_tb.mov'],
     grass1: ['t/giraffe_t.mov', 'tb/giraffe_tb.mov'],
     grass2: ['t/meerkat_t.mov', 'tb/meerkat_tb.mov'],
