@@ -1,32 +1,22 @@
-const loadingCircle = document.getElementById('loadingCircle');
-const videoPopup = document.getElementById('videoPopup');
-const popupVideo = document.getElementById('popupVideo');
-const closeButton = document.getElementById('closeButton');
-const tapHint = document.getElementById('tapHint');
-const markerStatus = document.getElementById('markerStatus');
-const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('2d');
-
 // 動画のパスを指定
 const videoPaths = {
-    city1: ['human_tb.mov', 'human_t.mov'],
-    city2: ['dog_tb.mov', 'dog_t.mov'],
-    city3: ['cat_tb.mov', 'cat_t.mov'],
-    city4: ['crow_tb.mov', 'crow_t.mov'],
-    grass1: ['giraffe_tb.mov', 'giraffe_t.mov'],
-    grass2: ['meerkat_tb.mov', 'meerkat_t.mov'],
-    grass3: ['horse_tb.mov', 'horse_t.mov'],
-    grass4: ['kangaroo_tb.mov', 'kangaroo_t.mov'],
-    jungle1: ['gibbon_tb.mov', 'gibbon_t.mov'],
-    jungle2: ['bear_tb.mov', 'bear_t.mov'],
-    jungle3: ['ezorisu_tb.mov', 'ezorisu_t.mov'],
-    jungle4: ['deer_tb.mov', 'deer_t.mov'],
-    ocean1: ['penguin_tb.mov', 'penguin_t.mov'],
-    ocean2: ['seal_tb.mov', 'seal_t.mov'],
-    ocean3: ['seaotter_tb.mov', 'seaotter_t.mov'],
-    ocean4: ['seaturtle_tb.mov', 'seaturtle_t.mov']
+    city1: ['t/human_t.mov', 'tb/human_tb.mov'],
+    city2: ['t/dog_t.mov', 'tb/dog_tb.mov'],
+    city3: ['t/cat_t.webm', 'tb/cat_tb.webm'], // 'cat_t.webm' を追加
+    city4: ['t/crow_t.mov', 'tb/crow_tb.mov'],
+    grass1: ['t/giraffe_t.mov', 'tb/giraffe_tb.mov'],
+    grass2: ['t/meerkat_t.mov', 'tb/meerkat_tb.mov'],
+    grass3: ['t/horse_t.mov', 'tb/horse_tb.mov'],
+    grass4: ['t/kangaroo_t.mov', 'tb/kangaroo_tb.mov'],
+    jungle1: ['t/gibbon_t.mov', 'tb/gibbon_tb.mov'],
+    jungle2: ['t/bear_t.mov', 'tb/bear_tb.mov'],
+    jungle3: ['t/ezorisu_t.mov', 'tb/ezorisu_tb.mov'],
+    jungle4: ['t/deer_t.mov', 'tb/deer_tb.mov'],
+    ocean1: ['t/penguin_t.mov', 'tb/penguin_tb.mov'],
+    ocean2: ['t/seal_t.mov', 'tb/seal_tb.mov'],
+    ocean3: ['t/seaotter_t.mov', 'tb/seaotter_tb.mov'],
+    ocean4: ['t/seaturtle_t.mov', 'tb/seaturtle_tb.mov']
 };
-
 
 // 再生中のフラグと現在の動画インデックス
 let isPlaying = false;
@@ -45,102 +35,74 @@ const preloadVideos = () => {
     });
 };
 
-// マーカー検出ステータスを更新する関数
-function updateMarkerStatus(show, isMarkerFound = false) {
-    if (isPlaying) return; // 映像再生中は表示しない
+// 動画の表示を管理する関数
+const showPopupVideo = (videoArray) => {
+    const videoElement = document.createElement('video');
+    videoElement.src = videoArray[currentVideoIndex];
+    videoElement.autoplay = true;
+    videoElement.controls = true;
+    videoElement.style.width = '100%';  // 動画サイズを調整
+    videoElement.style.height = 'auto';  // 動画サイズを調整
 
-    if (show) {
-        if (isMarkerFound) {
-            markerStatus.innerText = "マーカーを検出中...";
-            markerStatus.style.color = "green";
-        } else {
-            markerStatus.innerText = "マーカーが見つかりません";
-            markerStatus.style.color = "red";
-        }
-        markerStatus.style.display = "block";
-    } else {
-        markerStatus.style.display = "none";
+    const popup = document.createElement('div');
+    popup.classList.add('popup');
+    popup.appendChild(videoElement);
+
+    document.body.appendChild(popup);
+
+    // 動画終了後にポップアップを閉じる
+    videoElement.onended = () => {
+        popup.remove();
+    };
+};
+
+// マーカーが見つかったときの処理
+const markerFound = (markerId) => {
+    if (isPlaying) {
+        return;
     }
-}
-
-// UIヒントを表示する関数
-function showTapHint() {
-    tapHint.style.display = 'block';
-    tapHint.classList.add('show');
-}
-
-// 動画を再生する関数
-function showPopupVideo(videoPathsArray) {
-    if (isPlaying) return;
-
     isPlaying = true;
-    currentVideoIndex = 0;
-    const video = popupVideo;
+    // 新しい動画を再生
+    showPopupVideo(videoPaths[markerId]);
+    updateMarkerStatus(true);  // マーカーが表示されたら再生中フラグを更新
+};
 
-    function playVideo(index) {
-        video.src = videoPathsArray[index];
-        video.load();
-        video.loop = true;
-        video.play();
-        showTapHint();
-    }
-
-    loadingCircle.style.display = 'block';
-    videoPopup.style.display = 'none';
-
-    video.oncanplaythrough = () => {
-        loadingCircle.style.display = 'none';
-        videoPopup.style.display = 'block';
-        updateMarkerStatus(true, true); // 動画再生中はステータスを表示
-        video.play();
-    };
-
-    video.onerror = () => {
-        setTimeout(() => {
-            playVideo(currentVideoIndex);
-        }, 500);
-    };
-
-    playVideo(currentVideoIndex);
-
-    video.addEventListener('click', () => {
-        currentVideoIndex = (currentVideoIndex + 1) % videoPathsArray.length;
-        playVideo(currentVideoIndex);
-    });
-
-    closeButton.addEventListener('click', () => {
-        video.pause();
-        video.currentTime = 0;
-        videoPopup.style.display = 'none';
+// マーカーが見つからなかったときの処理
+const markerNotFound = () => {
+    if (isPlaying) {
         isPlaying = false;
-        updateMarkerStatus(false); // ×ボタンを押したらステータス非表示
-    });
-}
+        updateMarkerStatus(false);  // 再生終了時にフラグをリセット
+    }
+};
 
-// マーカーイベントを処理
-document.querySelectorAll('a-marker').forEach(marker => {
-    marker.addEventListener('markerFound', () => {
-        if (isPlaying) return;
+// マーカーの状態を更新する関数
+const updateMarkerStatus = (status) => {
+    const markerStatusElement = document.getElementById('markerStatus');
+    if (status) {
+        markerStatusElement.innerText = 'Marker detected: Playing';
+    } else {
+        markerStatusElement.innerText = 'No marker detected';
+    }
+};
 
-        const markerId = marker.id;
-        if (videoPaths[markerId]) {
-            setTimeout(() => {
-                showPopupVideo(videoPaths[markerId]);
-            }, 1000);
-        }
-
-        updateMarkerStatus(true, true);  // マーカーが見つかった時に緑色で表示
-    });
-
-    marker.addEventListener('markerLost', () => {
-        if (!isPlaying) {
-            updateMarkerStatus(true, false);  // マーカーが見つからない場合は赤色で表示
-        }
-    });
-});
-
-// ページロード時に動画を事前ロード
+// ページロード時に cat_t.webm を自動再生
 window.addEventListener('load', () => {
     preloadVideos();
-    updateMarkerStatus(false); // 初期状態は非表示
+    // 初期状態で cat_t.webm を再生
+    showPopupVideo(videoPaths.city3);  // 'city3' に対応する動画（cat_t.webm）
+    updateMarkerStatus(false); // 初期状態はマーカー非表示
+});
+
+// AR.js のイベントリスナー
+AFRAME.registerComponent('markerhandler', {
+    init: function () {
+        const marker = this.el;
+        marker.addEventListener('markerFound', (event) => {
+            const markerId = event.target.id;
+            markerFound(markerId);
+        });
+        marker.addEventListener('markerLost', () => {
+            markerNotFound();
+        });
+    }
 });
