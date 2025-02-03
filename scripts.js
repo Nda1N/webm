@@ -105,4 +105,8 @@ AFRAME.registerComponent('markerhandler', {
             markerNotFound();
         });
     }
+    // ページがロードされたときに cat_t.webm を自動再生
+window.addEventListener('load', () => {
+    showPopupVideo(videoPaths.city3);  // 'city3' に対応する動画（cat_t.webm）
+});
 });
