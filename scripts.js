@@ -1,112 +1,74 @@
 // 動画のパスを指定
 const videoPaths = {
-    city1: ['t/human_t.mov', 'tb/human_tb.mov'],
-    city2: ['t/dog_t.mov', 'tb/dog_tb.mov'],
-    city3: ['cat_t.webm', 'cat_tb.webm'], // 'cat_t.webm' を追加
-    city4: ['t/crow_t.mov', 'tb/crow_tb.mov'],
-    grass1: ['t/giraffe_t.mov', 'tb/giraffe_tb.mov'],
-    grass2: ['t/meerkat_t.mov', 'tb/meerkat_tb.mov'],
-    grass3: ['t/horse_t.mov', 'tb/horse_tb.mov'],
-    grass4: ['t/kangaroo_t.mov', 'tb/kangaroo_tb.mov'],
-    jungle1: ['t/gibbon_t.mov', 'tb/gibbon_tb.mov'],
-    jungle2: ['t/bear_t.mov', 'tb/bear_tb.mov'],
-    jungle3: ['t/ezorisu_t.mov', 'tb/ezorisu_tb.mov'],
-    jungle4: ['t/deer_t.mov', 'tb/deer_tb.mov'],
-    ocean1: ['t/penguin_t.mov', 'tb/penguin_tb.mov'],
-    ocean2: ['t/seal_t.mov', 'tb/seal_tb.mov'],
-    ocean3: ['t/seaotter_t.mov', 'tb/seaotter_tb.mov'],
-    ocean4: ['t/seaturtle_t.mov', 'tb/seaturtle_tb.mov']
+    city1: ['human_tb.mp4', 'human_t.mp4'],
+    city2: ['dog_tb.mp4', 'dog_t.mp4'],
+    city3: ['cat_tb.webm', 'cat_t.webm'], // 'cat_t.webm' を追加
+    city4: ['crow_tb.mp4', 'crow_t.mp4'],
+    grass1: ['giraffe_tb.mp4', 'giraffe_t.mp4'],
+    grass2: ['meerkat_tb.mp4', 'meerkat_t.mp4'],
+    grass3: ['horse_tb.mp4', 'horse_t.mp4'],
+    grass4: ['kangaroo_tb.mp4', 'kangaroo_t.mp4'],
+    jungle1: ['gibbon_tb.mp4', 'gibbon_t.mp4'],
+    jungle2: ['bear_tb.mp4', 'bear_t.mp4'],
+    jungle3: ['ezorisu_tb.mp4', 'ezorisu_t.mp4'],
+    jungle4: ['deer_tb.mp4', 'deer_t.mp4'],
+    ocean1: ['penguin_tb.mp4', 'penguin_t.mp4'],
+    ocean2: ['seal_tb.mp4', 'seal_t.mp4'],
+    ocean3: ['seaotter_tb.mp4', 'seaotter_t.mp4'],
+    ocean4: ['seaturtle_tb.mp4', 'seaturtle_t.mp4']
 };
 
-// 再生中のフラグと現在の動画インデックス
-let isPlaying = false;
-let currentVideoIndex = 0;
-
-// 動画を事前に読み込む関数
-const preloadVideos = () => {
-    Object.values(videoPaths).forEach(paths => {
-        paths.forEach(path => {
-            const video = document.createElement('video');
-            video.src = path;
-            video.preload = 'auto';
-            video.load();
-            video.muted = true;
-        });
-    });
-};
-
-// 動画の表示を管理する関数
-const showPopupVideo = (videoArray) => {
-    const videoElement = document.createElement('video');
-    videoElement.src = videoArray[currentVideoIndex];
-    videoElement.autoplay = true;
-    videoElement.controls = true;
-    videoElement.style.width = '100%';  // 動画サイズを調整
-    videoElement.style.height = 'auto';  // 動画サイズを調整
-
+// ポップアップ表示のための関数
+const showPopupVideo = (videoPaths) => {
+    // ポップアップ用のコンテナを作成
     const popup = document.createElement('div');
-    popup.classList.add('popup');
-    popup.appendChild(videoElement);
+    popup.id = 'video-popup';
+    popup.style.position = 'fixed';
+    popup.style.top = '0';
+    popup.style.left = '0';
+    popup.style.width = '100%';
+    popup.style.height = '100%';
+    popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    popup.style.display = 'flex';
+    popup.style.justifyContent = 'center';
+    popup.style.alignItems = 'center';
+    popup.style.zIndex = '1000';
 
-    document.body.appendChild(popup);
+    // 動画要素を作成
+    const video = document.createElement('video');
+    video.src = videoPaths[1];  // 'cat_t.webm' を指定
+    video.autoplay = true;
+    video.controls = true;
+    video.style.maxWidth = '90%';
+    video.style.maxHeight = '90%';
+    
+    // ポップアップ内に動画を追加
+    popup.appendChild(video);
 
-    // 動画終了後にポップアップを閉じる
-    videoElement.onended = () => {
+    // 閉じるボタンを追加
+    const closeButton = document.createElement('button');
+    closeButton.innerText = '閉じる';
+    closeButton.style.position = 'absolute';
+    closeButton.style.top = '20px';
+    closeButton.style.right = '20px';
+    closeButton.style.backgroundColor = 'red';
+    closeButton.style.color = 'white';
+    closeButton.style.border = 'none';
+    closeButton.style.padding = '10px';
+    closeButton.style.cursor = 'pointer';
+
+    // 閉じるボタンがクリックされたらポップアップを閉じる
+    closeButton.addEventListener('click', () => {
         popup.remove();
-    };
+    });
+
+    popup.appendChild(closeButton);
+
+    // ポップアップをページに追加
+    document.body.appendChild(popup);
 };
 
-// マーカーが見つかったときの処理
-const markerFound = (markerId) => {
-    if (isPlaying) {
-        return;
-    }
-    isPlaying = true;
-    // 新しい動画を再生
-    showPopupVideo(videoPaths[markerId]);
-    updateMarkerStatus(true);  // マーカーが表示されたら再生中フラグを更新
-};
-
-// マーカーが見つからなかったときの処理
-const markerNotFound = () => {
-    if (isPlaying) {
-        isPlaying = false;
-        updateMarkerStatus(false);  // 再生終了時にフラグをリセット
-    }
-};
-
-// マーカーの状態を更新する関数
-const updateMarkerStatus = (status) => {
-    const markerStatusElement = document.getElementById('markerStatus');
-    if (status) {
-        markerStatusElement.innerText = 'Marker detected: Playing';
-    } else {
-        markerStatusElement.innerText = 'No marker detected';
-    }
-};
-
-// ページロード時に cat_t.webm を自動再生
-window.addEventListener('load', () => {
-    preloadVideos();
-    // 初期状態で cat_t.webm を再生
-    showPopupVideo(videoPaths.city3);  // 'city3' に対応する動画（cat_t.webm）
-    updateMarkerStatus(false); // 初期状態はマーカー非表示
-});
-
-// AR.js のイベントリスナー
-AFRAME.registerComponent('markerhandler', {
-    init: function () {
-        const marker = this.el;
-        marker.addEventListener('markerFound', (event) => {
-            const markerId = event.target.id;
-            markerFound(markerId);
-        });
-        marker.addEventListener('markerLost', () => {
-            markerNotFound();
-        });
-    }
-    // ページがロードされたときに cat_t.webm を自動再生
+// ページがロードされたときに cat_t.webm を自動再生
 window.addEventListener('load', () => {
     showPopupVideo(videoPaths.city3);  // 'city3' に対応する動画（cat_t.webm）
-});
 });
