@@ -16,7 +16,22 @@ const videoPaths = {
     ocean2: ['seal_tb.mp4', 'seal_t.mp4'],
     ocean3: ['seaotter_tb.mp4', 'seaotter_t.mp4'],
     ocean4: ['seaturtle_tb.mp4', 'seaturtle_t.mp4']
+    
 };
+ // 動画パスを取得
+    const videos = videoPaths[marker];
+    if (videos) {
+        videos.forEach(video => {
+            const sourceElement = document.createElement('source');
+            sourceElement.src = video;
+            // 拡張子でタイプを判定
+            if (video.endsWith('.webm')) {
+                sourceElement.type = 'video/webm';
+            } else if (video.endsWith('.mp4')) {
+                sourceElement.type = 'video/mp4';
+            }
+            videoElement.appendChild(sourceElement);
+        });
 
 // ポップアップ表示のための関数
 const showPopupVideo = (videoPaths) => {
